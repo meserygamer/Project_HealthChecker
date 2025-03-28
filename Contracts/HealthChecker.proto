@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option csharp_namespace = "Project_HealthChecker.ProtoContracts";
+
+message EmptyRequest {}
+
+message CoreLoadResponse {
+    repeated float cores_load = 1;
+}
+
+service CpuInfo {
+    rpc GetCoreLoad (EmptyRequest) returns (stream CoreLoadResponse);
+}

@@ -1,0 +1,88 @@
+# Общие настройки для .NET
+## Игнорировать результаты сборки и настройки пользователя
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.cache
+*.pdb
+*.idb
+*.ilk
+*.ncb
+*.log
+
+# Файлы пакетов NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nupkg
+nuget.exe
+
+# Резервные копии и временные файлы
+*.[Cc]ache
+*.bak
+*.tmp
+*.swp
+*~.nuspec
+
+# Результаты тестов
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# JetBrains Rider specific
+.idea/
+*.sln.iml
+*.csproj.iml
+*.dotCover
+*.resharper
+*.sln.docstates
+
+# Файлы кэша Rider
+.idea/.name
+.idea/caches/
+.idea/.idea.DotSettings
+.idea/.idea.DotSettings.user
+
+# Файлы конфигурации Rider
+.idea/compiler.xml
+.idea/encodings.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/dataSources/
+.idea/dataSources.ids
+.idea/shelf/
+
+# Файлы сессий и истории
+.idea/httpRequests/
+.idea/tasks.xml
+
+# Файлы развертывания
+*.pubxml
+*.publishproj
+
+# Файлы Azure
+*.azurePubxml
+
+# Файлы Visual Studio
+.vs/
+_ReSharper.*
+*.psess
+*.vsp
+*.vssscc
+*.vspscc
+
+# Файлы Unity (если используется)
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+Assets/AssetStoreTools*
+
+# Файлы машинного кода
+*.pyc
+
+# Исключения (не игнорировать важные конфиги)
+!.idea/runConfigurations/
+!.idea/.gitignore
+!.idea/copyright/
+!.idea/scopes/
