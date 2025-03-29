@@ -4,11 +4,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>932195eb-9623-4481-a388-571b383ad51e</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.3" />
-    <Protobuf Include="./../Contracts/HealthChecker.proto" GrpcServices="Server"/>
+    <Protobuf Include="./../Contracts/HealthChecker.proto" GrpcServices="Server" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
     <PackageReference Include="Grpc.Tools" Version="2.71.0">
       <PrivateAssets>all</PrivateAssets>

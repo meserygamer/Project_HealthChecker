@@ -1,40 +1,45 @@
-using System.Diagnostics;
 using Grpc.Core;
-using Project_HealthChecker.OsIndicators.WindowsIndicators;
+using Project_HealthChecker.OsIndicators.IndicatorInterfaces;
 using Project_HealthChecker.ProtoContracts;
 
 namespace Project_HealthChecker.Server.Services;
 
 public class CpuInfoService : CpuInfo.CpuInfoBase
 {
+    private readonly IProcessorLoadIndicator _processorLoadIndicator;
+
+    private readonly TimeSpan _updateInterval = TimeSpan.FromMilliseconds(500);
+    
+    public CpuInfoService(IProcessorLoadIndicator processorLoadIndicator)
+    {
+        _processorLoadIndicator = processorLoadIndicator;
+    }
+    
     public override async Task GetCoreLoad(EmptyRequest request, IServerStreamWriter<CoreLoadResponse> responseStream, ServerCallContext context)
     {
-        var windowsProcessorLoadIndicator = new WindowsProcessorLoadIndicator(TimeSpan.FromMilliseconds(500));
-        windowsProcessorLoadIndicator.Start();
+        _processorLoadIndicator.MeasurementInterval = _updateInterval;
+        _processorLoadIndicator.Start();
 
         try
         {
-            while (true)
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-                context.CancellationToken.ThrowIfCancellationRequested();
-                await responseStream.WriteAsync(new CoreLoadResponse
-                    { CoresLoad = { windowsProcessorLoadIndicator.CoresLoad } });
-                await Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken);
+                await responseStream.WriteAsync(new CoreLoadResponse 
+                    { CoresLoad = { _processorLoadIndicator.CoresLoad } });
+                await Task.Delay(_updateInterval, context.CancellationToken);
             }
         }
         catch (OperationCanceledException)
         {
-            Trace.WriteLine("Клиент отключился!");
-            Trace.Flush();
+            Console.WriteLine("Клиент отключился!");
         }
         catch (Exception ex)
         {
-            Trace.WriteLine(ex);
-            Trace.Flush();
+            Console.WriteLine(ex);
         }
         finally
         {
-            windowsProcessorLoadIndicator.Pause();
+            _processorLoadIndicator.Pause();
         }
     }
 }

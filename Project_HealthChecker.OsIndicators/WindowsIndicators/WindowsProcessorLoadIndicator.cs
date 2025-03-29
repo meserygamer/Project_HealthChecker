@@ -1,36 +1,33 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Project_HealthChecker.Helpers.ClassExtensions;
-using Project_HealthChecker.OsIndicators.IndicatorInterfaces;
+using Project_HealthChecker.OsIndicators.BaseClasses;
 
 namespace Project_HealthChecker.OsIndicators.WindowsIndicators;
 
 [SuppressMessage("Interoperability", "CA1416:Проверка совместимости платформы")]
-public class WindowsProcessorLoadIndicator : IProcessorLoadIndicator
+public class WindowsProcessorLoadIndicator : BaseProcessorLoadIndicator
 {
-    public static readonly TimeSpan MinMeasurementInterval = TimeSpan.FromMilliseconds(200);
-    
     private PerformanceCounter[] _processorCorePerformanceIndicators = null!;
-
-    private readonly TimeSpan _measurementInterval;
     
     private Task? _indicationTask;
 
     private CancellationTokenSource? _indicationTaskCancellationTokenSource;
-    
-    public float[] CoresLoad { get; private set; }
 
-    public WindowsProcessorLoadIndicator(TimeSpan measurementInterval)
+    public override float[] CoresLoad { get; protected set; } = [];
+
+    public WindowsProcessorLoadIndicator()
+        : base()
     {
-        _measurementInterval = MinMeasurementInterval <= measurementInterval
-            ? measurementInterval
-            : throw new ArgumentException($"{nameof(measurementInterval)} must be bigger than " +
-                                          $"{nameof(MinMeasurementInterval)} or equal");
-        
+        SetPerformanceCounters();
+    }
+
+    public WindowsProcessorLoadIndicator(TimeSpan measurementInterval) 
+        : base(measurementInterval)
+    {
         SetPerformanceCounters();
     }
     
-    public void Start()
+    public override void Start()
     {
         if (_indicationTaskCancellationTokenSource is not null)
             return;
@@ -46,7 +43,7 @@ public class WindowsProcessorLoadIndicator : IProcessorLoadIndicator
                     .ToArray();
                 try
                 {
-                    await Task.Delay(_measurementInterval, token);
+                    await Task.Delay(base.MeasurementInterval, token);
                 }
                 catch (Exception)
                 {
@@ -56,7 +53,7 @@ public class WindowsProcessorLoadIndicator : IProcessorLoadIndicator
         }, token);
     }
 
-    public void Pause()
+    public override void Pause()
     {
         if (_indicationTaskCancellationTokenSource is null)
             return;
@@ -64,6 +61,17 @@ public class WindowsProcessorLoadIndicator : IProcessorLoadIndicator
         _indicationTaskCancellationTokenSource.Cancel();
         _indicationTaskCancellationTokenSource = null;
         _indicationTask = null;
+    }
+    
+    protected override void OnMeasurementIntervalChanged()
+    {
+        base.OnMeasurementIntervalChanged();
+        
+        if (_indicationTaskCancellationTokenSource is null)
+            return;
+
+        Pause();
+        Start();
     }
 
     private void SetPerformanceCounters()

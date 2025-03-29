@@ -10,7 +10,7 @@ class Program
     static async Task Main(string[] args)
     {
         AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-        using var channel = GrpcChannel.ForAddress("https://localhost:44001");
+        using var channel = GrpcChannel.ForAddress("http://localhost:44000");
         var client = new CpuInfo.CpuInfoClient(channel);
         
         var serverData = client.GetCoreLoad(new EmptyRequest());
