@@ -2,34 +2,32 @@
 
 namespace Project_HealthChecker.OsIndicators.BaseClasses;
 
-public abstract class BaseProcessorLoadIndicator : IProcessorLoadIndicator
+public abstract class BaseChangingOverTimeIndicator : IChangingOverTimeIndicator
 {
-    public static readonly TimeSpan MinMeasurementInterval = TimeSpan.FromMilliseconds(200);
+    private TimeSpan _measurementInterval;
 
-    private TimeSpan _measurmentInterval;
-
-    protected BaseProcessorLoadIndicator() { }
+    protected BaseChangingOverTimeIndicator() { }
     
-    protected BaseProcessorLoadIndicator(TimeSpan measurementInterval)
+    protected BaseChangingOverTimeIndicator(TimeSpan measurementInterval)
     {
         MeasurementInterval = measurementInterval;
     }
 
+    public virtual TimeSpan MinMeasurementInterval { get; protected init; } = TimeSpan.FromMilliseconds(200);
+
     public TimeSpan MeasurementInterval
     {
-        get => _measurmentInterval;
+        get => _measurementInterval;
         set
         {
             if (MinMeasurementInterval > value)
                 throw new ArgumentException($"{nameof(value)} must be bigger than " +
                                             $"{nameof(MinMeasurementInterval)} or equal");
 
-            _measurmentInterval = value;
+            _measurementInterval = value;
             OnMeasurementIntervalChanged();
         }
     }
-
-    public abstract float[] CoresLoad { get; protected set; }
 
     protected virtual void OnMeasurementIntervalChanged() { }
 

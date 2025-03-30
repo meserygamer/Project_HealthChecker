@@ -11,3 +11,11 @@ message CoreLoadResponse {
 service CpuInfo {
     rpc GetCoreLoad (EmptyRequest) returns (stream CoreLoadResponse);
 }
+
+message TotalMemoryResponse {
+    uint64 total_memory = 1;
+}
+
+service RamInfo {
+    rpc GetTotalMemory (EmptyRequest) returns (TotalMemoryResponse);
+}

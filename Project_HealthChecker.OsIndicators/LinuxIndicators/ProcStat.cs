@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using Project_HealthChecker.Helpers.ClassExtensions;
 
 namespace Project_HealthChecker.OsIndicators.LinuxIndicators;
 
@@ -69,8 +70,8 @@ public struct ProcStat
     /// <returns>Структура данных о ядре.</returns>
     public static ProcStat FromString(string str)
     {
-        var stringSegments = Regex
-            .Replace(str, @"\s{2,}", " ")
+        var stringSegments = str
+            .CollapseSpaces()
             .Split(' ');
 
         return new ProcStat

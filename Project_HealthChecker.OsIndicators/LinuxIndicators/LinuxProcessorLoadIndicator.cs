@@ -1,9 +1,10 @@
 ﻿using Project_HealthChecker.Helpers.ClassExtensions;
 using Project_HealthChecker.OsIndicators.BaseClasses;
+using Project_HealthChecker.OsIndicators.IndicatorInterfaces;
 
 namespace Project_HealthChecker.OsIndicators.LinuxIndicators;
 
-public class LinuxProcessorLoadIndicator : BaseProcessorLoadIndicator
+public class LinuxProcessorLoadIndicator : BaseChangingOverTimeIndicator, IProcessorLoadIndicator
 {
     public const string PathToStatFile = "/proc/stat";
 
@@ -15,17 +16,7 @@ public class LinuxProcessorLoadIndicator : BaseProcessorLoadIndicator
 
     private CancellationTokenSource? _indicationTaskCancellationTokenSource;
 
-    public override float[] CoresLoad { get; protected set; } = [];
-
-    public LinuxProcessorLoadIndicator()
-        : base() { }
-
-    public LinuxProcessorLoadIndicator(TimeSpan measurementInterval) 
-        : base(measurementInterval)
-    {
-        int coresCount = Environment.ProcessorCount;
-        CoresLoad = new float[coresCount];
-    }
+    public float[] CoresLoad { get; private set; } = [];
     
     public override void Start()
     {
@@ -41,15 +32,7 @@ public class LinuxProcessorLoadIndicator : BaseProcessorLoadIndicator
                 _previousStat = _actualStat;
                 _actualStat = await GetActualProcStatAsync();
                 CoresLoad = CalculateAverageCpuCoresLoad(_previousStat, _actualStat);
-                
-                try
-                {
-                    await Task.Delay(base.MeasurementInterval, token);
-                }
-                catch (Exception)
-                {
-                    break;
-                }
+                await Task.Delay(base.MeasurementInterval, token);
             }
         }, token);
     }

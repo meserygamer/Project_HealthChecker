@@ -1,25 +1,20 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+﻿using Project_HealthChecker.Helpers.ClassExtensions;
 using Project_HealthChecker.OsIndicators.BaseClasses;
 using Project_HealthChecker.OsIndicators.IndicatorInterfaces;
 
-namespace Project_HealthChecker.OsIndicators.WindowsIndicators;
+namespace Project_HealthChecker.OsIndicators.LinuxIndicators;
 
-[SuppressMessage("Interoperability", "CA1416:Проверка совместимости платформы")]
-public class WindowsProcessorLoadIndicator : BaseChangingOverTimeIndicator, IProcessorLoadIndicator
+public class LinuxRamUsingIndicator : BaseChangingOverTimeIndicator, IRamUsingIndicator
 {
-    private PerformanceCounter[] _processorCorePerformanceIndicators = null!;
+    private const string PathToMemInfoFile = "/proc/meminfo";
+    
+    private const int BytesInKilobyte = 1024;
     
     private Task? _indicationTask;
-
+    
     private CancellationTokenSource? _indicationTaskCancellationTokenSource;
-
-    public float[] CoresLoad { get; private set; } = [];
-
-    public WindowsProcessorLoadIndicator()
-    {
-        SetPerformanceCounters();
-    }
+    
+    public ulong UsingMemory { get; private set; }
     
     public override void Start()
     {
@@ -32,9 +27,10 @@ public class WindowsProcessorLoadIndicator : BaseChangingOverTimeIndicator, IPro
         {
             while (!token.IsCancellationRequested)
             {
-                CoresLoad = _processorCorePerformanceIndicators
-                    .Select(coreIndicator => coreIndicator.NextValue())
-                    .ToArray();
+                using var memInfoStream = File.OpenText(PathToMemInfoFile);
+                ulong ramTotal = GetRamInfoFromFileLine((await memInfoStream.ReadLineAsync(token))!);
+                ulong ramFree = GetRamInfoFromFileLine((await memInfoStream.ReadLineAsync(token))!);
+                UsingMemory = (ramTotal - ramFree) * BytesInKilobyte;
                 await Task.Delay(base.MeasurementInterval, token);
             }
         }, token);
@@ -61,14 +57,14 @@ public class WindowsProcessorLoadIndicator : BaseChangingOverTimeIndicator, IPro
         Start();
     }
 
-    private void SetPerformanceCounters()
+    private ulong GetRamInfoFromFileLine(string fileLine)
     {
-        int coresCount = Environment.ProcessorCount;
-        CoresLoad = new float[coresCount];
-        _processorCorePerformanceIndicators = Enumerable
-            .Range(0, coresCount)
-            .Select(coreNumber => 
-                new PerformanceCounter("Processor", "% Processor Time", coreNumber.ToString()))
-            .ToArray();
+        if (string.IsNullOrEmpty(fileLine))
+            throw new ArgumentException($"Аргумент {nameof(fileLine)} пустой или null!");
+        
+        return Convert.ToUInt64(
+            fileLine
+                .CollapseSpaces()
+                .Split(" ")[1]);
     }
 }
